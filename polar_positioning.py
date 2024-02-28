@@ -1,5 +1,5 @@
 import matplotlib.pyplot as plt
-import math, csv, os
+import math, csv
 
 
 anzahl = int(input('Anzahl der Punkte, die zur Stationierung verwendet wurden: '))
@@ -12,7 +12,7 @@ for j in range(1, anzahl + 1):
     neuer_punkt = []
 
     for i in range(1, 3):
-        # Erst Standpunkt, dann Festpunkt
+        # Erst Standpunkt, dann Festpunkt eingeben
         name = input(f'{i}. Punktname: '); punkte.append(name)
         y_value = float(input('\tY-Wert: ')); y_werte.append(y_value)
         x_value = float(input('\tX-Wert: ')); x_werte.append(x_value)
@@ -23,12 +23,15 @@ for j in range(1, anzahl + 1):
 
     print('-'* 15)
 
+    # Differenzen ausrechnen
     diff_y = y_werte[1] - y_werte[0]
     diff_x = x_werte[1] - x_werte[0]
     sum_xy = (diff_y / diff_x)
 
+    # Richtungswinkel des Festpunktes
     richtungswinkel_fp = round(math.atan(sum_xy) * 200 / math.pi, 4)
 
+    # Quadrantenregeln beachten
     if diff_y > 0 and diff_x < 0:
         richtungswinkel_fp = round(richtungswinkel_fp + 200, 4)
     elif diff_y and diff_x < 0:
@@ -36,38 +39,44 @@ for j in range(1, anzahl + 1):
     elif diff_y < 0 and diff_x > 0:
         richtungswinkel_fp = round(richtungswinkel_fp + 400, 4)
 
+    # Richtungswinkel des gesuchten Punktes
     richtungswinkel_S = round(richtungswinkel_fp + winkel, 4)
 
+    # Falls der Winkel größer als 400 gon sein sollte, werden 400 gon abgezogen
     if richtungswinkel_S >= 400:
         richtungswinkel_S = round(richtungswinkel_S - 400, 4)
     else:
         pass
 
+    # Umwandlung des zweiten Winkels, damit man den Sinus/Kosinus berechnen kann
     def conversion(richtungswinkel_S):
-        # Umwandlung des zweiten Winkels, damit man den Sinus/Kosinus berechnen kann
         return richtungswinkel_S * math.pi / 200
 
+    # Bildung der Deltas
     delta_y = round(strecke * math.sin(conversion(richtungswinkel_S)), 4)
     delta_x = round(strecke * math.cos(conversion(richtungswinkel_S)), 4)
 
+    # Streckenkontrolle mit Satz des Pythagoras und den Deltas
     streckenkontrolle = round(math.sqrt(delta_y**2 + delta_x**2), 3)
 
+    # Analyse des Ergebnisses der Streckenkontrolle
     if streckenkontrolle - strecke <= abs(0.002):
         pass
     else:
         print(f'Die Abweichung in der Strecke ist zu groß ({streckenkontrolle - strecke}). Lieber nicht weiterrechnen.')
         exit()
 
+    # Bildung der neuen Koordinaten
     new_y = round(y_werte[0] + delta_y, 3)
     new_x = round(x_werte[0] + delta_x, 3)
 
+    # Wiedergabe für den Benutzer
     print(f'- Richtungswinkel t({punkte[0]}_{punkte[1]}) = {richtungswinkel_fp} gon')
     print(f'- Richtungswinkel t({punkte[0]}_{neuer_punktname}) = {richtungswinkel_S} gon')
     print(f'- Delta Y = {delta_y}')
     print(f'- Delta X = {delta_x}')
     print(f'- Errechnete Strecke: {streckenkontrolle} m')
     print(f'- Der neue Punkt {neuer_punktname} hat die Koordinaten ({new_y} | {new_x}).')
-
     print('-'* 15); print('-'* 15)
 
 
@@ -149,14 +158,12 @@ elif len(fixpunkt_name) == 4:
 
 with open('polar.csv', 'a', newline='') as csvfile:
     writer1 = csv.writer(csvfile, delimiter=',')
-    writer2 = csv.writer(csvfile)
+    writer2 = csv.writer(csvfile, delimiter='-')
 
     if anzahl > 1:
-        writer2.writerow('---------------')
+        writer2.writerow('----------')
         writer1.writerow(['S', medium_y, medium_x])
     
-    
-
 
 
 fig, ax = plt.subplots()
@@ -175,14 +182,3 @@ for i in range(len(fixpunkt_name)):
 ax.set_aspect('equal')
 plt.savefig('polar.png', dpi=300)
 plt.show()
-
-
-
-os.mkdir('polar_results')
-
-for a in range(anzahl):
-    os.rename(f'polar_{j}.csv', f'polar_results/polar_{j}.csv')
-    os.rename(f'polar_{j}.png', f'polar_results/polar_{j}.png')
-
-os.rename('polar.csv', 'polar_results/polar.csv')
-os.rename('polar.png', 'polar_results/polar.png')
